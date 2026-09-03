@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Código QR para Imprimir en 3D | 3MF y STL</title>
+    <meta name="description" content="Crea tu código QR personalizado para imprimir en 3D. Descarga en 3MF o STL con doble color para soportes de mesa, llaveros y placas.">
+    <!-- Tailwind CSS para diseño limpio y responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librerías para QR y 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        .ad-placeholder {
+            background-color: #f3f4f6;
+            border: 2px dashed #9ca3af;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- Navbar -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">PrintQR3D</div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#herramienta" class="hover:text-blue-600">Herramienta</a>
+                <a href="#como-funciona" class="hover:text-blue-600">Cómo funciona</a>
+                <a href="#ideas" class="hover:text-blue-600">Ideas de uso</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Ad: Notificación en esquina -->
+    <div class="fixed bottom-4 right-4 w-64 h-24 ad-placeholder z-50 shadow-lg text-sm rounded">
+        ANUNCIO (NOTIFICACIÓN)
+    </div>
+
+    <!-- Main Tool Section -->
+    <main id="herramienta" class="max-w-6xl mx-auto px-4 py-8">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Generador de Código QR para Imprimir en 3D</h1>
+            <p class="text-lg text-gray-600">Convierte enlaces en objetos 3D listos para tu impresora. Exporta en formato 3MF con colores reales.</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 bg-white p-6 rounded-xl shadow-lg">
+            
+            <!-- Controles (Izquierda) -->
+            <div class="w-full lg:w-1/2 space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Enlace / URL del QR</label>
+                    <input type="text" id="qr-url" placeholder="Ej: https://tu-restaurante.com/carta" class="w-full border-gray-300 rounded-md shadow-sm p-3 border focus:ring-blue-500 focus:border-blue-500" value="https://google.com">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Color Base (3D)</label>
+                        <input type="color" id="color-base" value="#ffffff" class="w-full h-10 border-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Color QR y Texto (3D)</label>
+                        <input type="color" id="color-qr" value="#000000" class="w-full h-10 border-none cursor-pointer">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Formato de Objeto 3D</label>
+                    <select id="shape-type" class="w-full border-gray-300 rounded-md shadow-sm p-3 border">
+                        <option value="plaque">Placa de pared</option>
+                        <option value="keychain">Llavero (con agujero)</option>
+                        <option value="stand">Soporte de mesa (Inclinado)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Texto Corto (Opcional)</label>
+                    <input type="text" id="qr-text" placeholder="Ej: Menú, WiFi, Reseñas..." class="w-full border-gray-300 rounded-md shadow-sm p-3 border">
+                </div>
+
+                <button onclick="generatePreview()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-200">
+                    Generar Vista Previa
+                </button>
+            </div>
+
+            <!-- Visor 3D y Descargas (Derecha) -->
+            <div class="w-full lg:w-1/2 flex flex-col space-y-4">
+                <div class="bg-gray-100 rounded-lg h-80 relative overflow-hidden flex items-center justify-center border-2 border-gray-200">
+                    <!-- Contenedor oculto para generar el QR 2D que se usa como textura -->
+                    <div id="qrcode-2d" class="hidden"></div>
+                    <!-- Canvas de Three.js -->
+                    <div id="canvas-3d" class="w-full h-full cursor-move"></div>
+                    <div class="absolute bottom-2 left-2 bg-white/80 px-2 py-1 text-xs rounded text-gray-600 pointer-events-none">Gira el modelo con el ratón</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="triggerDownload('3MF')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md text-sm transition">
+                        Descargar 3MF (Color)
+                    </button>
+                    <button onclick="triggerDownload('STL')" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-4 rounded-md text-sm transition">
+                        Descargar STL (Clásico)
+                    </button>
+                    <button onclick="triggerDownload('PNG')" class="bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-2 px-4 rounded-md text-sm transition col-span-2">
+                        Descargar Imagen (PNG / SVG)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Ad: Banner Horizontal -->
+    <div class="max-w-6xl mx-auto px-4 my-8">
+        <div class="w-full h-24 ad-placeholder rounded-lg">
+            ANUNCIO (BANNER HORIZONTAL)
+        </div>
+    </div>
+
+    <!-- Cómo funciona -->
+    <section id="como-funciona" class="bg-white py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Cómo funciona en 3 pasos</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                    <h3 class="font-bold text-lg mb-2">Diseña y Personaliza</h3>
+                    <p class="text-gray-600">Pega tu enlace, elige los colores de tu filamento y selecciona si quieres un llavero, placa o soporte de mesa.</p>
+                </div>
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                    <h3 class="font-bold text-lg mb-2">Visualiza en 3D</h3>
+                    <p class="text-gray-600">Gira el modelo en tiempo real para asegurarte de que el contraste entre el relieve y la base es perfecto.</p>
+                </div>
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                    <h3 class="font-bold text-lg mb-2">Descarga e Imprime</h3>
+                    <p class="text-gray-600">Baja el archivo en 3MF. Al abrirlo en tu laminador (Bambu Studio, PrusaSlicer) ya tendrá los colores asignados.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ad: Banner Mitad de Contenido -->
+    <div class="max-w-4xl mx-auto px-4 my-8">
+        <div class="w-full h-40 ad-placeholder rounded-lg">
+            ANUNCIO (BANNER MITAD CONTENIDO)
+        </div>
+    </div>
+
+    <!-- Ideas de Uso -->
+    <section id="ideas" class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Ideas de uso</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-blue-600 mb-2">Hostelería</h4>
+                    <p class="text-sm text-gray-600">Soportes de mesa para la carta del restaurante o para pedir reseñas en Google.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-blue-600 mb-2">Alojamientos</h4>
+                    <p class="text-sm text-gray-600">Placas de pared con conexión automática a la red WiFi del apartamento u hotel.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-blue-600 mb-2">Educación y Aulas</h4>
+                    <p class="text-sm text-gray-600">Llaveros o fichas impresas para enlazar a materiales para el aula o juegos interactivos.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-blue-600 mb-2">Gimnasios y Eventos</h4>
+                    <p class="text-sm text-gray-600">Placas en máquinas con rutinas en vídeo o llaveros con los horarios del centro.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQs -->
+    <section class="py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">Preguntas Frecuentes</h2>
+            <div class="space-y-4">
+                <div class="border-b pb-4">
+                    <h4 class="font-bold text-lg">¿Por qué descargar en 3MF en lugar de STL?</h4>
+                    <p class="text-gray-600 mt-2">El formato 3MF permite guardar geometría junto con metadatos como el color. Si tienes una impresora multicolor, el laminador separará automáticamente el código QR de la base sin que tengas que pintar el archivo a mano.</p>
+                </div>
+                <div class="border-b pb-4">
+                    <h4 class="font-bold text-lg">¿Puedo imprimirlo si mi impresora solo tiene un color?</h4>
+                    <p class="text-gray-600 mt-2">¡Sí! Descarga la versión STL y configura tu laminador para hacer un "cambio de filamento" (M600) en la capa donde empieza el relieve del código QR.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 text-center">
+        <p>&copy; 2026 PrintQR3D. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Ad Pop-up Modal -->
+    <div id="ad-popup" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md relative">
+            <button onclick="closePopup()" class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
+            <h3 class="text-lg font-bold mb-4 text-center">¡Tu descarga está lista!</h3>
+            <div class="w-full h-48 ad-placeholder mb-4 rounded">
+                ANUNCIO (POP-UP DESCARGA)
+            </div>
+            <p class="text-sm text-center text-gray-500">El archivo se ha guardado en tu dispositivo.</p>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls;
+        let qrcodeInstance = null;
+
+        function init3D() {
+            const container = document.getElementById('canvas-3d');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf3f4f6);
+
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 15, 20);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(10, 20, 10);
+            scene.add(directionalLight);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 2.0;
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            animate();
+            generatePreview();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function generatePreview() {
+            const url = document.getElementById('qr-url').value;
+            const baseColor = document.getElementById('color-base').value;
+            const qrColor = document.getElementById('color-qr').value;
+            const shape = document.getElementById('shape-type').value;
+
+            const qrContainer = document.getElementById('qrcode-2d');
+            qrContainer.innerHTML = ''; 
+            if(qrcodeInstance) qrcodeInstance.clear();
+            
+            qrcodeInstance = new QRCode(qrContainer, {
+                text: url || "https://google.com",
+                width: 256,
+                height: 256,
+                colorDark : qrColor,
+                colorLight : baseColor,
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const qrCanvas = qrContainer.querySelector('canvas');
+                update3DModel(qrCanvas, baseColor, qrColor, shape);
+            }, 100);
+        }
+
+        function update3DModel(qrCanvas, baseColor, qrColor, shapeType) {
+            while(scene.children.length > 2){ 
+                scene.remove(scene.children[2]); 
+            }
+
+            const texture = new THREE.CanvasTexture(qrCanvas);
+            texture.magFilter = THREE.NearestFilter;
+
+            const matBase = new THREE.MeshStandardMaterial({ color: baseColor });
+            const matQR = new THREE.MeshStandardMaterial({ 
+                color: 0xffffff, 
+                map: texture,
+                bumpMap: texture,
+                bumpScale: 0.5
+            });
+
+            let geometryBase;
+            const size = 10;
+            const thickness = 1;
+            const group = new THREE.Group();
+
+            if (shapeType === 'plaque' || shapeType === 'keychain') {
+                geometryBase = new THREE.BoxGeometry(size, thickness, size);
+                const meshBase = new THREE.Mesh(geometryBase, matBase);
+                
+                const qrPlane = new THREE.BoxGeometry(size - 2, 0.2, size - 2);
+                const meshQR = new THREE.Mesh(qrPlane, matQR);
+                meshQR.position.y = thickness / 2 + 0.1;
+                
+                if (shapeType === 'keychain') {
+                    const ringGeo = new THREE.TorusGeometry(1, 0.3, 16, 32);
+                    const ring = new THREE.Mesh(ringGeo, matBase);
+                    ring.position.set(0, 0, -size/2 - 1);
+                    ring.rotation.x = Math.PI / 2;
+                    group.add(ring);
+                }
+
+                group.add(meshBase);
+                group.add(meshQR);
+
+            } else if (shapeType === 'stand') {
+                geometryBase = new THREE.BoxGeometry(size, size, thickness);
+                const meshBase = new THREE.Mesh(geometryBase, matBase);
+                meshBase.position.y = size / 2;
+                meshBase.rotation.x = -Math.PI / 8;
+                
+                const baseFoot = new THREE.BoxGeometry(size, thickness, size/2);
+                const foot = new THREE.Mesh(baseFoot, matBase);
+                foot.position.z = size/4;
+
+                const qrPlane = new THREE.BoxGeometry(size - 2, size - 2, 0.2);
+                const meshQR = new THREE.Mesh(qrPlane, matQR);
+                meshQR.position.y = size / 2;
+                meshQR.position.z = thickness/2 + 0.1;
+                meshQR.rotation.x = -Math.PI / 8;
+
+                group.add(meshBase);
+                group.add(foot);
+                group.add(meshQR);
+                
+                group.position.y = -size/3;
+            }
+
+            scene.add(group);
+        }
+
+        function triggerDownload(format) {
+            document.getElementById('ad-popup').classList.remove('hidden');
+            
+            const url = document.getElementById('qr-url').value;
+            const shape = document.getElementById('shape-type').value;
+
+            fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url, shape: shape, format: format })
+            })
+            .then(res => res.blob())
+            .then(blob => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `codigo-qr.${format.toLowerCase()}`;
+                link.click();
+            });
+        }
+
+        function closePopup() {
+            document.getElementById('ad-popup').classList.add('hidden');
+        }
+
+        window.onload = init3D;
+    </script>
+</body>
+</html>
