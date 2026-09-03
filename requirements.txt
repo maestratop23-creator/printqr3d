@@ -3,3 +3,4 @@ qrcode
 trimesh
 numpy
 Pillow
+gunicorn
