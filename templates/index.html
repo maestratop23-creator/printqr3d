@@ -86,10 +86,18 @@
                     <input type="text" id="qr-text" placeholder="Ej: Menú, WiFi, Reseñas..." class="w-full border-gray-300 rounded-md shadow-sm p-3 border">
                 </div>
 
-                <button onclick="generatePreview()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-200">
-                    Generar Vista Previa
-                </button>
-            </div>
+                <button id="btn-generar" onclick="arrancarBarra(); generatePreview();" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition duration-200">
+    Generar Vista Previa
+</button>
+</div>
+
+<!-- Contenedor de la barra de carga (Oculto al inicio) -->
+<div id="loading-container" class="hidden w-full mt-4">
+    <p id="loading-text" class="text-sm text-gray-600 mb-2 text-center font-medium animate-pulse">Procesando y generando modelo 3D...</p>
+    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+        <div id="loading-bar" class="bg-blue-600 h-3 rounded-full w-0 transition-all duration-300 ease-out"></div>
+    </div>
+</div>
 
             <!-- Visor 3D y Descargas (Derecha) -->
             <div class="w-full lg:w-1/2 flex flex-col space-y-4">
@@ -404,5 +412,34 @@
 
         window.onload = init3D;
     </script>
+    <script>
+    function arrancarBarra() {
+        // 1. Mostramos la barra
+        document.getElementById('loading-container').classList.remove('hidden');
+        
+        // 2. Apagamos el botón temporalmente para que no hagan doble clic
+        const btn = document.getElementById('btn-generar');
+        if(btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.innerText = 'Generando...';
+        }
+
+        // 3. Empezamos a llenar la barra poco a poco
+        const bar = document.getElementById('loading-bar');
+        let progress = 0;
+        
+        const interval = setInterval(() => {
+            progress += Math.random() * 15; // Sube aleatoriamente
+            
+            if (progress > 95) {
+                progress = 95; // Se para al 95% para dar tiempo a que cargue el 3D
+                clearInterval(interval);
+            }
+            
+            bar.style.width = progress + '%';
+        }, 500);
+    }
+</script>
 </body>
 </html>
