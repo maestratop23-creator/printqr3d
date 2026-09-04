@@ -386,25 +386,36 @@
             scene.add(group);
         }
 
-        function triggerDownload(format) {
-            document.getElementById('ad-popup').classList.remove('hidden');
-            
-            const url = document.getElementById('qr-url').value;
-            const shape = document.getElementById('shape-type').value;
+     function triggerDownload(format) {
+    document.getElementById('ad-popup').classList.remove('hidden');
 
-            fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: url, shape: shape, format: format })
-            })
-            .then(res => res.blob())
-            .then(blob => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `codigo-qr.${format.toLowerCase()}`;
-                link.click();
-            });
+    const url = document.getElementById('qr-url').value;
+    const shape = document.getElementById('shape-type').value;
+
+    fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url, shape: shape, format: format })
+    })
+    .then(async res => {
+        // Comprobamos si el servidor ha dado luz verde
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fallo del servidor: ${res.status} - ${errorText}`);
         }
+        return res.blob(); // Si todo va bien, procesamos el archivo
+    })
+    .then(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `codigo-qr.${format.toLowerCase()}`;
+        link.click();
+    })
+    .catch(error => {
+        console.error("Error al descargar:", error);
+        alert("El servidor no pudo generar el archivo " + format + ". Revisa la consola.");
+    });
+}
 
         function closePopup() {
             document.getElementById('ad-popup').classList.add('hidden');
