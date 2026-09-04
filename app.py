@@ -33,6 +33,20 @@ def generate_model():
     shape = data.get('shape', 'plaque')
     format_type = data.get('format', '3MF')
     
+    temp_dir = tempfile.gettempdir()
+    ext = format_type.lower()
+    output_path = os.path.join(temp_dir, f'codigo-qr.{ext}')
+    
+    # CAMINO 1: Si el usuario pide un PNG, generamos el QR 2D tradicional
+    if ext == 'png':
+        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr.add_data(url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        img.save(output_path)
+        return send_file(output_path, as_attachment=True)
+        
+    # CAMINO 2: Si pide 3MF o STL, construimos el modelo 3D con trimesh
     qr = qrcode.QRCode(version=1, box_size=1, border=2)
     qr.add_data(url)
     qr.make(fit=True)
@@ -55,10 +69,6 @@ def generate_model():
                 
     malla_qr = trimesh.util.concatenate(cubos_qr)
     escena = trimesh.Scene([base, malla_qr])
-    
-    temp_dir = tempfile.gettempdir()
-    ext = format_type.lower()
-    output_path = os.path.join(temp_dir, f'codigo-qr.{ext}')
     
     escena.export(output_path)
     return send_file(output_path, as_attachment=True)
