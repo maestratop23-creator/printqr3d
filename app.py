@@ -9,7 +9,57 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    html = render_template('index.html')
+
+    # Durante la preparación para AdSense quitamos los bloques de anuncio de demostración.
+    html = html.replace('''    <!-- Ad: Notificación en esquina -->
+    <div class="fixed bottom-4 right-4 w-64 h-24 ad-placeholder z-50 shadow-lg text-sm rounded">
+        ANUNCIO (NOTIFICACIÓN)
+    </div>
+''', '')
+
+    html = html.replace('''    <!-- Ad: Banner Horizontal -->
+    <div class="max-w-6xl mx-auto px-4 my-8">
+        <div class="w-full h-24 ad-placeholder rounded-lg">
+            ANUNCIO (BANNER HORIZONTAL)
+        </div>
+    </div>
+''', '')
+
+    html = html.replace('''    <!-- Ad: Banner Mitad de Contenido -->
+    <div class="max-w-4xl mx-auto px-4 my-8">
+        <div class="w-full h-40 ad-placeholder rounded-lg">
+            ANUNCIO (BANNER MITAD CONTENIDO)
+        </div>
+    </div>
+''', '')
+
+    html = html.replace(
+        'Los mejores QRs 3D generados por nuestros usuarios',
+        'Ejemplos de códigos QR 3D que puedes crear'
+    )
+
+    html = html.replace('''    <footer class="bg-gray-900 text-gray-400 py-8 text-center">
+        <p>&copy; 2026 PrintQR3D. Todos los derechos reservados.</p>
+    </footer>''', '''    <footer class="bg-gray-900 text-gray-300 py-8">
+        <div class="max-w-6xl mx-auto px-4 text-center space-y-3">
+            <p>&copy; 2026 PrintQR3D. Todos los derechos reservados.</p>
+            <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
+                <a href="/privacidad" class="hover:text-white">Privacidad</a>
+                <a href="/cookies" class="hover:text-white">Cookies</a>
+                <a href="/aviso-legal" class="hover:text-white">Aviso legal</a>
+                <a href="/contacto" class="hover:text-white">Contacto</a>
+            </nav>
+        </div>
+    </footer>''')
+
+    html = html.replace('''            <div class="w-full h-48 ad-placeholder mb-4 rounded">
+                ANUNCIO (POP-UP DESCARGA)
+            </div>''', '''            <div class="w-full bg-blue-50 border border-blue-100 p-4 mb-4 rounded text-sm text-center text-gray-700">
+                Gracias por utilizar PrintQR3D. Comprueba siempre que el código se escanea correctamente antes de imprimirlo.
+            </div>''')
+
+    return html
 
 @app.route('/privacidad')
 def privacidad():
