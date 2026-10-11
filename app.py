@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, Response
 import qrcode
 import trimesh
 import numpy as np
@@ -45,7 +45,6 @@ def index():
         'Ejemplos de códigos QR 3D que puedes crear'
     )
 
-    # Contenido editorial útil para usuarios y para que el sitio no sea solo una herramienta aislada.
     guias = '''
     <section id="guias" class="py-16 bg-white border-t border-gray-100">
         <div class="max-w-6xl mx-auto px-4">
@@ -124,6 +123,29 @@ def mf_vs_stl():
 @app.route('/errores-qr-3d')
 def errores_qr_3d():
     return render_template('errores-qr-3d.html')
+
+@app.route('/robots.txt')
+def robots_txt():
+    base = request.host_url.rstrip('/')
+    body = f"User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n"
+    return Response(body, mimetype='text/plain')
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    base = request.host_url.rstrip('/')
+    paths = [
+        '/',
+        '/como-imprimir-qr-3d',
+        '/3mf-vs-stl',
+        '/errores-qr-3d',
+        '/privacidad',
+        '/cookies',
+        '/aviso-legal',
+        '/contacto',
+    ]
+    urls = ''.join(f'<url><loc>{base}{path}</loc></url>' for path in paths)
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return Response(xml, mimetype='application/xml')
 
 @app.route('/api/preview-qr', methods=['POST'])
 def preview_qr():
