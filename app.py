@@ -34,10 +34,46 @@ def index():
     </div>
 ''', '')
 
+    # Añadimos acceso visible a las guías desde la navegación principal.
+    html = html.replace(
+        '<a href="#ideas" class="hover:text-blue-600">Ideas de uso</a>',
+        '<a href="#ideas" class="hover:text-blue-600">Ideas de uso</a>\n                <a href="#guias" class="hover:text-blue-600">Guías</a>'
+    )
+
     html = html.replace(
         'Los mejores QRs 3D generados por nuestros usuarios',
         'Ejemplos de códigos QR 3D que puedes crear'
     )
+
+    # Contenido editorial útil para usuarios y para que el sitio no sea solo una herramienta aislada.
+    guias = '''
+    <section id="guias" class="py-16 bg-white border-t border-gray-100">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <h2 class="text-3xl font-bold mb-3">Guías para imprimir códigos QR en 3D</h2>
+                <p class="text-gray-600">Consejos prácticos para elegir el formato, evitar errores de impresión y conseguir códigos que se escaneen correctamente.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <a href="/como-imprimir-qr-3d" class="block bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition">
+                    <h3 class="font-bold text-xl mb-2 text-gray-900">Cómo imprimir un QR 3D correctamente</h3>
+                    <p class="text-gray-600 text-sm">Tamaño, contraste, relieve, orientación y comprobaciones antes de fabricar varias unidades.</p>
+                    <span class="inline-block mt-4 text-blue-600 font-semibold text-sm">Leer guía →</span>
+                </a>
+                <a href="/3mf-vs-stl" class="block bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition">
+                    <h3 class="font-bold text-xl mb-2 text-gray-900">3MF vs STL</h3>
+                    <p class="text-gray-600 text-sm">Qué guarda cada formato y cuál conviene para un QR de uno o varios colores.</p>
+                    <span class="inline-block mt-4 text-blue-600 font-semibold text-sm">Leer guía →</span>
+                </a>
+                <a href="/errores-qr-3d" class="block bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition">
+                    <h3 class="font-bold text-xl mb-2 text-gray-900">Errores comunes al imprimir QR 3D</h3>
+                    <p class="text-gray-600 text-sm">Los fallos que hacen que un código deje de escanearse y cómo corregirlos.</p>
+                    <span class="inline-block mt-4 text-blue-600 font-semibold text-sm">Leer guía →</span>
+                </a>
+            </div>
+        </div>
+    </section>
+'''
+    html = html.replace('   <!-- SECCIÓN GALERÍA DE COMUNIDAD -->', guias + '\n   <!-- SECCIÓN GALERÍA DE COMUNIDAD -->')
 
     html = html.replace('''    <footer class="bg-gray-900 text-gray-400 py-8 text-center">
         <p>&copy; 2026 PrintQR3D. Todos los derechos reservados.</p>
@@ -76,6 +112,18 @@ def aviso_legal():
 @app.route('/contacto')
 def contacto():
     return render_template('contacto.html')
+
+@app.route('/como-imprimir-qr-3d')
+def como_imprimir_qr_3d():
+    return render_template('como-imprimir-qr-3d.html')
+
+@app.route('/3mf-vs-stl')
+def mf_vs_stl():
+    return render_template('3mf-vs-stl.html')
+
+@app.route('/errores-qr-3d')
+def errores_qr_3d():
+    return render_template('errores-qr-3d.html')
 
 @app.route('/api/preview-qr', methods=['POST'])
 def preview_qr():
