@@ -124,6 +124,13 @@ def mf_vs_stl():
 def errores_qr_3d():
     return render_template('errores-qr-3d.html')
 
+@app.route('/ads.txt')
+def ads_txt():
+    return Response(
+        'google.com, pub-5212494517858064, DIRECT, f08c47fec0942fa0\n',
+        mimetype='text/plain'
+    )
+
 @app.route('/robots.txt')
 def robots_txt():
     base = request.host_url.rstrip('/')
