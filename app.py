@@ -11,7 +11,6 @@ app = Flask(__name__)
 def index():
     html = render_template('index.html')
 
-    # Durante la preparación para AdSense quitamos los bloques de anuncio de demostración.
     html = html.replace('''    <!-- Ad: Notificación en esquina -->
     <div class="fixed bottom-4 right-4 w-64 h-24 ad-placeholder z-50 shadow-lg text-sm rounded">
         ANUNCIO (NOTIFICACIÓN)
@@ -34,10 +33,18 @@ def index():
     </div>
 ''', '')
 
-    # Añadimos acceso visible a las guías desde la navegación principal.
     html = html.replace(
         '<a href="#ideas" class="hover:text-blue-600">Ideas de uso</a>',
-        '<a href="#ideas" class="hover:text-blue-600">Ideas de uso</a>\n                <a href="#guias" class="hover:text-blue-600">Guías</a>'
+        '<a href="#ideas" class="hover:text-blue-600">Ideas de uso</a>\n                <a href="/guias" class="hover:text-blue-600">Guías</a>'
+    )
+
+    html = html.replace(
+        '<p class="text-lg text-gray-600">Convierte enlaces en objetos 3D listos para tu impresora. Exporta en formato 3MF con colores reales.</p>',
+        '''<p class="text-lg text-gray-600">Convierte enlaces en objetos 3D listos para tu impresora. Exporta en formato 3MF con colores reales.</p>
+        <div class="max-w-3xl mx-auto mt-6 text-left bg-blue-50 border border-blue-100 rounded-xl p-5 text-gray-700 leading-7">
+            <p><strong>PrintQR3D no es solo un generador:</strong> la impresión de un QR introduce variables como tamaño de módulo, contraste, orientación, flujo y acabado del material. Por eso hemos preparado guías prácticas para ayudarte a comprobar que el diseño seguirá siendo legible después de imprimirlo.</p>
+            <p class="mt-3">Puedes generar una placa, llavero o soporte, revisar la vista previa y después consultar recomendaciones específicas sobre 3MF, STL, WiFi, hostelería, negocios y configuración de impresión.</p>
+        </div>'''
     )
 
     html = html.replace(
@@ -49,8 +56,8 @@ def index():
     <section id="guias" class="py-16 bg-white border-t border-gray-100">
         <div class="max-w-6xl mx-auto px-4">
             <div class="text-center max-w-3xl mx-auto mb-10">
-                <h2 class="text-3xl font-bold mb-3">Guías para imprimir códigos QR en 3D</h2>
-                <p class="text-gray-600">Consejos prácticos para elegir el formato, evitar errores de impresión y conseguir códigos que se escaneen correctamente.</p>
+                <h2 class="text-3xl font-bold mb-3">Aprende a imprimir códigos QR en 3D</h2>
+                <p class="text-gray-600">Contenido práctico para elegir formato, evitar errores y adaptar tus piezas a situaciones reales.</p>
             </div>
             <div class="grid md:grid-cols-3 gap-6">
                 <a href="/como-imprimir-qr-3d" class="block bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition">
@@ -63,12 +70,13 @@ def index():
                     <p class="text-gray-600 text-sm">Qué guarda cada formato y cuál conviene para un QR de uno o varios colores.</p>
                     <span class="inline-block mt-4 text-blue-600 font-semibold text-sm">Leer guía →</span>
                 </a>
-                <a href="/errores-qr-3d" class="block bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition">
-                    <h3 class="font-bold text-xl mb-2 text-gray-900">Errores comunes al imprimir QR 3D</h3>
-                    <p class="text-gray-600 text-sm">Los fallos que hacen que un código deje de escanearse y cómo corregirlos.</p>
+                <a href="/tamano-contraste-qr-3d" class="block bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition">
+                    <h3 class="font-bold text-xl mb-2 text-gray-900">Tamaño y contraste</h3>
+                    <p class="text-gray-600 text-sm">Cómo conservar módulos definidos y elegir colores que faciliten el escaneo.</p>
                     <span class="inline-block mt-4 text-blue-600 font-semibold text-sm">Leer guía →</span>
                 </a>
             </div>
+            <div class="text-center mt-8"><a href="/guias" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg">Ver las 8 guías de PrintQR3D</a></div>
         </div>
     </section>
 '''
@@ -80,6 +88,7 @@ def index():
         <div class="max-w-6xl mx-auto px-4 text-center space-y-3">
             <p>&copy; 2026 PrintQR3D. Todos los derechos reservados.</p>
             <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
+                <a href="/guias" class="hover:text-white">Guías</a>
                 <a href="/privacidad" class="hover:text-white">Privacidad</a>
                 <a href="/cookies" class="hover:text-white">Cookies</a>
                 <a href="/aviso-legal" class="hover:text-white">Aviso legal</a>
@@ -112,6 +121,10 @@ def aviso_legal():
 def contacto():
     return render_template('contacto.html')
 
+@app.route('/guias')
+def guias():
+    return render_template('guias.html')
+
 @app.route('/como-imprimir-qr-3d')
 def como_imprimir_qr_3d():
     return render_template('como-imprimir-qr-3d.html')
@@ -123,6 +136,26 @@ def mf_vs_stl():
 @app.route('/errores-qr-3d')
 def errores_qr_3d():
     return render_template('errores-qr-3d.html')
+
+@app.route('/qr-3d-wifi')
+def qr_3d_wifi():
+    return render_template('qr-3d-wifi.html')
+
+@app.route('/qr-3d-restaurantes')
+def qr_3d_restaurantes():
+    return render_template('qr-3d-restaurantes.html')
+
+@app.route('/qr-3d-negocios')
+def qr_3d_negocios():
+    return render_template('qr-3d-negocios.html')
+
+@app.route('/configuracion-impresion-qr-3d')
+def configuracion_impresion_qr_3d():
+    return render_template('configuracion-impresion-qr-3d.html')
+
+@app.route('/tamano-contraste-qr-3d')
+def tamano_contraste_qr_3d():
+    return render_template('tamano-contraste-qr-3d.html')
 
 @app.route('/ads.txt')
 def ads_txt():
@@ -142,9 +175,15 @@ def sitemap_xml():
     base = request.host_url.rstrip('/')
     paths = [
         '/',
+        '/guias',
         '/como-imprimir-qr-3d',
         '/3mf-vs-stl',
         '/errores-qr-3d',
+        '/qr-3d-wifi',
+        '/qr-3d-restaurantes',
+        '/qr-3d-negocios',
+        '/configuracion-impresion-qr-3d',
+        '/tamano-contraste-qr-3d',
         '/privacidad',
         '/cookies',
         '/aviso-legal',
